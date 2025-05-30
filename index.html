@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tebak Warna</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --text-color: #333;
+            --bg-color: #f5f7fa;
+            --correct-color: #4caf50;
+            --wrong-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-size: 2.2rem;
+        }
+
+        .color-display {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .arrow-btn {
+            background-color: var(--accent-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .arrow-btn:hover {
+            background-color: #3da8d8;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .feedback {
+            height: 30px;
+            font-weight: bold;
+            margin: 10px 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .correct {
+            color: var(--correct-color);
+            opacity: 1;
+        }
+
+        .wrong {
+            color: var(--wrong-color);
+            opacity: 1;
+        }
+
+        .copyright {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .difficulty-selector {
+            margin: 15px 0;
+        }
+
+        .difficulty-selector button {
+            margin: 0 5px;
+            padding: 8px 15px;
+        }
+
+        .active-difficulty {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 500px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Game Tebak Warna</h1>
+        
+        <div class="difficulty-selector">
+            <button id="easy-btn">Mudah</button>
+            <button id="medium-btn" class="active-difficulty">Sedang</button>
+            <button id="hard-btn">Sulit</button>
+        </div>
+        
+        <div class="color-display" id="colorDisplay"></div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="score-display">
+            Skor: <span id="score">0</span> | Level: <span id="level">1</span>
+        </div>
+        
+        <div class="options">
+            <button id="option1"></button>
+            <button id="option2"></button>
+            <button id="option3"></button>
+            <button id="option4"></button>
+        </div>
+        
+        <div class="controls">
+            <button class="arrow-btn" id="left-btn">←</button>
+            <button class="arrow-btn" id="up-btn">↑</button>
+            <button class="arrow-btn" id="right-btn">→</button>
+        </div>
+    </div>
+    
+    <div class="copyright">
+        &copy; <span id="year"></span> l @lutfibatawi
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set tahun hak cipta
+            document.getElementById('year').textContent = new Date().getFullYear();
+            
+            // Elemen DOM
+            const colorDisplay = document.getElementById('colorDisplay');
+            const options = [
+                document.getElementById('option1'),
+                document.getElementById('option2'),
+                document.getElementById('option3'),
+                document.getElementById('option4')
+            ];
+            const feedback = document.getElementById('feedback');
+            const scoreDisplay = document.getElementById('score');
+            const levelDisplay = document.getElementById('level');
+            const difficultyButtons = {
+                easy: document.getElementById('easy-btn'),
+                medium: document.getElementById('medium-btn'),
+                hard: document.getElementById('hard-btn')
+            };
+            const arrowButtons = {
+                left: document.getElementById('left-btn'),
+                up: document.getElementById('up-btn'),
+                right: document.getElementById('right-btn')
+            };
+            
+            // Variabel game
+            let score = 0;
+            let level = 1;
+            let correctAnswer;
+            let difficulty = 'medium';
+            let colorOptions = [];
+            
+            // Fungsi untuk menghasilkan warna acak dalam format HEX
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+            
+            // Fungsi untuk menghasilkan warna yang mirip (untuk level sulit)
+            function getSimilarColor(baseColor, similarity = 50) {
+                // Konversi HEX ke RGB
+                let r = parseInt(baseColor.substr(1, 2), 16);
+                let g = parseInt(baseColor.substr(3, 2), 16);
+                let b = parseInt(baseColor.substr(5, 2), 16);
+                
+                // Modifikasi nilai RGB
+                r = Math.max(0, Math.min(255, r + Math.floor((Math.random() - 0.5) * similarity)));
+                g = Math.max(0, Math.min(255, g + Math.floor((Math.random() - 0.5) * similarity)));
+                b = Math.max(0, Math.min(255, b + Math.floor((Math.random() - 0.5) * similarity)));
+                
+                // Kembalikan ke format HEX
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+            
+            // Fungsi untuk memulai ronde baru
+            function newRound() {
+                // Bersihkan feedback
+                feedback.className = 'feedback';
+                feedback.textContent = '';
+                
+                // Tentukan kesulitan berdasarkan level
+                let colorSimilarity;
+                if (difficulty === 'easy') {
+                    colorSimilarity = 150 - (level * 5);
+                } else if (difficulty === 'medium') {
+                    colorSimilarity = 100 - (level * 3);
+                } else {
+                    colorSimilarity = 50 - (level * 2);
+                }
+                colorSimilarity = Math.max(20, colorSimilarity);
+                
+                // Generate warna utama
+                const mainColor = getRandomColor();
+                colorDisplay.style.backgroundColor = mainColor;
+                
+                // Generate opsi jawaban
+                colorOptions = [mainColor];
+                while (colorOptions.length < 4) {
+                    const similarColor = getSimilarColor(mainColor, colorSimilarity);
+                    if (!colorOptions.includes(similarColor)) {
+                        colorOptions.push(similarColor);
+                    }
+                }
+                
+                // Acak urutan opsi
+                colorOptions = colorOptions.sort(() => Math.random() - 0.5);
+                correctAnswer = colorOptions.indexOf(mainColor);
+                
+                // Tampilkan opsi
+                options.forEach((option, index) => {
+                    option.textContent = colorOptions[index];
+                    option.style.backgroundColor = colorOptions[index];
+                    
+                    // Sesuaikan warna teks berdasarkan kecerahan background
+                    const rgb = parseInt(colorOptions[index].substring(1), 16);
+                    const r = (rgb >> 16) & 0xff;
+                    const g = (rgb >> 8) & 0xff;
+                    const b = (rgb >> 0) & 0xff;
+                    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                    option.style.color = luminance > 128 ? 'black' : 'white';
+                });
+            }
+            
+            // Fungsi untuk menangani jawaban
+            function handleAnswer(selectedIndex) {
+                if (selectedIndex === correctAnswer) {
+                    // Jawaban benar
+                    feedback.textContent = 'Benar!';
+                    feedback.className = 'feedback correct';
+                    score += level * 10;
+                    level++;
+                } else {
+                    // Jawaban salah
+                    feedback.textContent = `Salah! Jawaban benar: ${colorOptions[correctAnswer]}`;
+                    feedback.className = 'feedback wrong';
+                    score = Math.max(0, score - 5);
+                    if (level > 1) level--;
+                }
+                
+                // Update tampilan skor dan level
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                
+                // Mulai ronde baru setelah jeda
+                setTimeout(newRound, 1500);
+            }
+            
+            // Event listener untuk tombol opsi
+            options.forEach((option, index) => {
+                option.addEventListener('click', () => handleAnswer(index));
+            });
+            
+            // Event listener untuk tombol anak panah
+            arrowButtons.left.addEventListener('click', () => handleAnswer(0));
+            arrowButtons.up.addEventListener('click', () => handleAnswer(1));
+            arrowButtons.right.addEventListener('click', () => handleAnswer(2));
+            
+            // Event listener untuk keyboard
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        handleAnswer(0);
+                        arrowButtons.left.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            arrowButtons.left.style.transform = '';
+                        }, 100);
+                        break;
+                    case 'ArrowUp':
+                        handleAnswer(1);
+                        arrowButtons.up.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            arrowButtons.up.style.transform = '';
+                        }, 100);
+                        break;
+                    case 'ArrowRight':
+                        handleAnswer(2);
+                        arrowButtons.right.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            arrowButtons.right.style.transform = '';
+                        }, 100);
+                        break;
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                        handleAnswer(parseInt(e.key) - 1);
+                        break;
+                }
+            });
+            
+            // Event listener untuk tombol kesulitan
+            Object.keys(difficultyButtons).forEach(diff => {
+                difficultyButtons[diff].addEventListener('click', () => {
+                    difficulty = diff;
+                    // Update tampilan tombol aktif
+                    Object.values(difficultyButtons).forEach(btn => btn.classList.remove('active-difficulty'));
+                    difficultyButtons[diff].classList.add('active-difficulty');
+                    
+                    // Reset game
+                    score = 0;
+                    level = 1;
+                    scoreDisplay.textContent = score;
+                    levelDisplay.textContent = level;
+                    newRound();
+                });
+            });
+            
+            // Mulai game
+            newRound();
+        });
+    </script>
+</body>
+</html>
